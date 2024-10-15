@@ -23,10 +23,7 @@ class ColBERT(BaseColBERT):
 
         ColBERT.try_load_torch_extensions(self.use_gpu)
 
-        if self.colbert_config.mask_punctuation:
-            self.skiplist = {w: True
-                             for symbol in string.punctuation
-                             for w in [symbol, self.raw_tokenizer.encode(symbol, add_special_tokens=False)[0]]}
+        self.skiplist = None
         self.pad_token = self.raw_tokenizer.pad_token_id
 
 
@@ -99,7 +96,7 @@ class ColBERT(BaseColBERT):
         D = self.bert(input_ids, attention_mask=attention_mask)[0]
         D = self.linear(D)
         mask = torch.tensor(self.mask(input_ids, skiplist=self.skiplist), device=self.device).unsqueeze(2).float()
-        D = D * mask
+        # D = D * mask
 
         D = torch.nn.functional.normalize(D, p=2, dim=2)
         if self.use_gpu:
