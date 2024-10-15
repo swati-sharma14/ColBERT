@@ -13,18 +13,21 @@ from colbert.indexing.collection_indexer import encode
 
 
 class Indexer:
-    def __init__(self, checkpoint, config=None, verbose: int = 3):
+    def __init__(self, config=None, verbose: int = 3):
         """
-           Use Run().context() to choose the run's configuration. They are NOT extracted from `config`.
+        Initializes the model to be trained from scratch without loading any checkpoint.
+        Use Run().context() to choose the run's configuration. They are NOT extracted from `config`.
         """
 
         self.index_path = None
         self.verbose = verbose
-        self.checkpoint = checkpoint
-        self.checkpoint_config = ColBERTConfig.load_from_checkpoint(checkpoint)
 
-        self.config = ColBERTConfig.from_existing(self.checkpoint_config, config, Run().config)
-        self.configure(checkpoint=checkpoint)
+        # No checkpoint logic
+        self.checkpoint_config = None
+
+        # Initialize config from scratch (no checkpoint-related settings)
+        self.config = ColBERTConfig.from_existing(None, config, Run().config)
+        self.configure()
 
     def configure(self, **kw_args):
         self.config.configure(**kw_args)
@@ -60,7 +63,7 @@ class Indexer:
     def index(self, name, collection, overwrite=False):
         assert overwrite in [True, False, 'reuse', 'resume', "force_silent_overwrite"]
 
-        self.configure(collection=collection, index_name=name, resume=overwrite=='resume')
+        self.configure(collection=collection, index_name=name, resume=overwrite == 'resume')
         # Note: The bsize value set here is ignored internally. Users are encouraged
         # to supply their own batch size for indexing by using the index_bsize parameter in the ColBERTConfig.
         self.configure(bsize=64, partitions=None)
